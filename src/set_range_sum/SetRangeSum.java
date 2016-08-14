@@ -99,8 +99,10 @@ public class SetRangeSum {
     class VertexPair {
         Vertex left;
         Vertex right;
+
         VertexPair() {
         }
+
         VertexPair(Vertex left, Vertex right) {
             this.left = left;
             this.right = right;
@@ -189,12 +191,50 @@ public class SetRangeSum {
     void erase(int x) {
         // Implement erase yourself
 
+        // search for the key x
+        if (find(x)) {
+            // if x is found, remove the root of the tree in two steps
+
+            Vertex left = root.left;
+            // step 1.1: remove the pointers to the root from the root subtrees
+            if (left != null) {
+                left.parent = null;
+            }
+
+            Vertex right = root.right;
+            // step 1.2: remove the pointers to the root from the root subtrees
+            if (right != null) {
+                right.parent = null;
+            }
+
+            // step 2: merge the subtrees
+            root = merge(left, right);
+        }
     }
 
     boolean find(int x) {
         // Implement find yourself
 
-        return false;
+        if (XisRoot(x)) {
+            // maybe the node we're searching for
+            // is already in the root of the tree
+            return true;
+        } else {
+            // the node is not the root node,
+            // so we're searching for it
+            VertexPair findAndRoot = find(root, x);
+
+            // update the root with the search result
+            root = findAndRoot.right;
+
+            // return the search result
+            return (XisRoot(x));
+        }
+    }
+
+    // a helper method to accompany find(int)
+    boolean XisRoot(int x) {
+        return (root != null && root.key == x);
     }
 
     long sum(int from, int to) {
@@ -207,9 +247,19 @@ public class SetRangeSum {
         long ans = 0;
         // Complete the implementation of sum
 
+        // if we did everything correctly (which we did, because
+        // it's the Coursera code), the sum will be in the root
+        // of the middle subtree
+        if (middle != null) {
+            ans = middle.sum;
+        }
+
+        // merge everything back, update root
+        left = merge(left, middle);
+        root = merge(left, right);
+
         return ans;
     }
-
 
     public static final int MODULO = 1000000001;
 
@@ -219,24 +269,27 @@ public class SetRangeSum {
         for (int i = 0; i < n; i++) {
             char type = nextChar();
             switch (type) {
-                case '+' : {
+                case '+': {
                     int x = nextInt();
                     insert((x + last_sum_result) % MODULO);
-                } break;
-                case '-' : {
+                }
+                break;
+                case '-': {
                     int x = nextInt();
                     erase((x + last_sum_result) % MODULO);
-                } break;
-                case '?' : {
+                }
+                break;
+                case '?': {
                     int x = nextInt();
                     out.println(find((x + last_sum_result) % MODULO) ? "Found" : "Not found");
-                } break;
-                case 's' : {
+                }
+                break;
+                case 's': {
                     int l = nextInt();
                     int r = nextInt();
                     long res = sum((l + last_sum_result) % MODULO, (r + last_sum_result) % MODULO);
                     out.println(res);
-                    last_sum_result = (int)(res % MODULO);
+                    last_sum_result = (int) (res % MODULO);
                 }
             }
         }
@@ -268,6 +321,7 @@ public class SetRangeSum {
     int nextInt() throws IOException {
         return Integer.parseInt(nextToken());
     }
+
     char nextChar() throws IOException {
         return nextToken().charAt(0);
     }
